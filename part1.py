@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 import rospy
 from geometry_msgs.msg import Twist
 import queue
@@ -8,7 +8,7 @@ import numpy as np
 import math as mt
 from collections import deque
 
-start_node = [10.0,10.0,0.0]
+start_node = [10.0,10.0,90.0]
 goal_node = [90.0,90.0] 
 cost_to_come = 0
 visited_node = {}
@@ -189,7 +189,7 @@ def takeStartInput():
             if k < 0:
                 while k >= 0:
                     k = k + 360
-            # start_node[i] = 30*k
+            start_node[i] = k
             # if k < 0 or k > 11:
             #     print("k should be 0 <= k <= 11.")
             #     takeStartInput()
@@ -240,6 +240,8 @@ def generateNode(Xi,Yi,Thetai,UL,UR):
     Yn=Yi                           # end position of y coordinate (intial y + change in the y)
     Thetan = 3.14 * Thetai / 180    # end orientation  (intial theta + change in the theta)
     D=0
+    # UL = UL*3.14/60
+    # UR = UR*3.14/60
     while t<1:
         t = t + dt
         Delta_Xn = 0.5*r * (UL + UR) * mt.cos(Thetan) * dt
@@ -409,7 +411,7 @@ def exploreNode(current_node,current_cost, UL, UR, clearance):
             plt.arrow(current_node[0], current_node[1],node8[0]-current_node[0],node8[1]-current_node[1],fc="k", head_width=0.5, head_length=0.1)
             # plt.pause(0.005)
 
-    plt.pause(10e-10)
+    plt.pause(10e-20)
     
 # function to compute cost to reach goal node
 # cost to reach goal node is euclidean distance between current node and goal node
@@ -558,19 +560,26 @@ wheel_rotation_list = RPM_list
 x = []
 y = []
 
-Xi = x_path.pop()
-Yi = y_path.pop()
+if x_path:
+    Xi = x_path.pop()
+    Yi = y_path.pop()
 
-Xn = Xi
-Yn = Yi
-Thetan = start_node[2]
+    Xn = Xi
+    Yn = Yi
+    
+    x.append(Xn)
+    y.append(Yn)
+    
+# Thetan = start_node[2]
+Thetan = 3.14 * start_node[2] / 180
 r = 0.033                       # radius of robot
 L = 0.16                        # span of the wheel
 dt = 0.1                        # time interval at which x and y should be computed 
-x.append(Xn)
-y.append(Yn)
+
 
 while True:
+    if not x_path:
+        break
     if not RPM_list:
         break
     plt.title("Plotting optimal path to travel from start node to goal node using A* algorithm")
